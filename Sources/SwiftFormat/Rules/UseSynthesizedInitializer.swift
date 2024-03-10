@@ -36,7 +36,7 @@ public final class UseSynthesizedInitializer: SyntaxLintRule {
         // Collect any possible redundant initializers into a list
       } else if let initDecl = member.as(InitializerDeclSyntax.self) {
         guard initDecl.optionalMark == nil else { continue }
-        guard initDecl.signature.effectSpecifiers?.throwsSpecifier == nil else { continue }
+        guard initDecl.signature.effectSpecifiers?.throwsClause?.throwsSpecifier == nil else { continue }
         initializers.append(initDecl)
       }
     }
