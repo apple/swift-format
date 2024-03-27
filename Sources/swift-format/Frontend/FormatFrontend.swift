@@ -58,7 +58,7 @@ class FormatFrontend: Frontend {
           parsingDiagnosticHandler: diagnosticHandler)
 
         if buffer != source {
-          let bufferData = buffer.data(using: .utf8)!  // Conversion to UTF-8 cannot fail
+          let bufferData = Data(buffer.utf8)
           try bufferData.write(to: url, options: .atomic)
         }
       } else {

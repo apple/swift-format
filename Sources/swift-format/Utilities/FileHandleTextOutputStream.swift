@@ -24,6 +24,7 @@ struct FileHandleTextOutputStream: TextOutputStream {
   }
 
   func write(_ string: String) {
-    fileHandle.write(string.data(using: .utf8)!)  // Conversion to UTF-8 cannot fail
+    let data = Data(string.utf8)
+    fileHandle.write(data)
   }
 }

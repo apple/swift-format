@@ -30,12 +30,7 @@ extension SwiftFormatCommand {
         }
 
         let data = try encoder.encode(configuration)
-        guard let jsonString = String(data: data, encoding: .utf8) else {
-          // This should never happen, but let's make sure we fail more gracefully than crashing, just
-          // in case.
-          throw FormatError(
-            message: "Could not dump the default configuration: the JSON was not valid UTF-8")
-        }
+        let jsonString = String(decoding: data, as: UTF8.self)
         print(jsonString)
       } catch {
         throw FormatError(message: "Could not dump the default configuration: \(error)")

@@ -38,7 +38,7 @@ extension FileGenerator {
 extension FileHandle: TextOutputStream {
   /// Writes the provided string as data to a file output stream.
   public func write(_ string: String) {
-    guard let data = string.data(using: .utf8) else { return }
+    let data = Data(string.utf8)
     write(data)
   }
 }

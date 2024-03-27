@@ -10,7 +10,7 @@ final class ConfigurationTests: XCTestCase {
     // JSON input, which verifies that those defaults are always in sync.
     let defaultInitConfig = Configuration()
 
-    let emptyDictionaryData = "{}\n".data(using: .utf8)!
+    let emptyDictionaryData = Data("{}\n".utf8)
     let jsonDecoder = JSONDecoder()
     let emptyJSONConfig =
       try! jsonDecoder.decode(Configuration.self, from: emptyDictionaryData)
