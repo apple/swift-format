@@ -43,6 +43,7 @@ class PrettyPrintTestCase: DiagnosingTestCase {
     let (formatted, context) = prettyPrintedSource(
       markedInput.textWithoutMarkers,
       configuration: configuration,
+      selection: markedInput.selection,
       whitespaceOnly: whitespaceOnly,
       findingConsumer: { emittedFindings.append($0) })
     assertStringsEqualWithDiff(
@@ -67,6 +68,7 @@ class PrettyPrintTestCase: DiagnosingTestCase {
     let (reformatted, _) = prettyPrintedSource(
       formatted,
       configuration: configuration,
+      selection: markedInput.selection,
       whitespaceOnly: whitespaceOnly,
       findingConsumer: { _ in }  // Ignore findings during the idempotence check.
     )
@@ -86,6 +88,7 @@ class PrettyPrintTestCase: DiagnosingTestCase {
   private func prettyPrintedSource(
     _ source: String,
     configuration: Configuration,
+    selection: Selection?,
     whitespaceOnly: Bool,
     findingConsumer: @escaping (Finding) -> Void
   ) -> (String, Context) {
@@ -96,9 +99,11 @@ class PrettyPrintTestCase: DiagnosingTestCase {
     let context = makeContext(
       sourceFileSyntax: sourceFileSyntax,
       configuration: configuration,
+      selection: selection,
       findingConsumer: findingConsumer)
     let printer = PrettyPrinter(
       context: context,
+      source: source,
       node: Syntax(sourceFileSyntax),
       printTokenStream: false,
       whitespaceOnly: whitespaceOnly)

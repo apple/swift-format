@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -25,6 +25,18 @@ struct LintFormatOptions: ParsableArguments {
       string containing the configuration directly.
       """)
   var configuration: String?
+
+  /// A JSON string containing the selected ranges to process.
+  ///
+  /// If not specified, the whole file will be formatted.
+  @Option(
+    name: .long,
+    help: """
+      A JSON string containing an array of {"offset":<Int>, "length":<Int>} pairs specifying \
+      the source code ranges to format.
+      """)
+  var selection: String?
+
 
   /// The filename for the source code when reading from standard input, to include in diagnostic
   /// messages.
@@ -92,6 +104,10 @@ struct LintFormatOptions: ParsableArguments {
 
     if assumeFilename != nil && !paths.isEmpty {
       throw ValidationError("'--assume-filename' is only valid when reading from stdin")
+    }
+
+    if selection != nil && paths.count > 1 {
+      throw ValidationError("'--selection' is only valid when processing a single file")
     }
 
     if !paths.isEmpty && !recursive {

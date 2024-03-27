@@ -10,6 +10,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+import SwiftSyntax
+import SwiftFormat
+
 /// Encapsulates the locations of emoji markers extracted from source text.
 public struct MarkedText {
   /// A mapping from marker names to the UTF-8 offset where the marker was found in the string.
@@ -18,23 +21,37 @@ public struct MarkedText {
   /// The text with all markers removed.
   public let textWithoutMarkers: String
 
+  /// If the marked text contains "➡️" and "⬅️", they're used to create a selection
+  public var selection: Selection?
+
   /// Creates a new `MarkedText` value by extracting emoji markers from the given text.
   public init(textWithMarkers markedText: String) {
     var text = ""
     var markers = [String: Int]()
     var lastIndex = markedText.startIndex
+    var ranges = [Selection.Range]()
+    var lastRangeStart = 0
     for marker in findMarkedRanges(in: markedText) {
       text += markedText[lastIndex..<marker.range.lowerBound]
       lastIndex = marker.range.upperBound
 
-      assert(markers[marker.name] == nil, "Marker names must be unique")
-      markers[marker.name] = text.utf8.count
+      if marker.name == "➡️" {
+        lastRangeStart = text.utf8.count
+      } else if marker.name == "⬅️" {
+        ranges.append(Selection.Range(start: lastRangeStart, end: text.utf8.count))
+      } else {
+        assert(markers[marker.name] == nil, "Marker names must be unique")
+        markers[marker.name] = text.utf8.count
+      }
     }
 
     text += markedText[lastIndex..<markedText.endIndex]
 
     self.markers = markers
     self.textWithoutMarkers = text
+    if !ranges.isEmpty {
+      selection = Selection(ranges: ranges)
+    }
   }
 }
 
@@ -73,7 +90,8 @@ extension Character {
   /// location marker.
   fileprivate var isMarkerEmoji: Bool {
     switch self {
-    case "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "ℹ️": return true
+    case "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "ℹ️", "➡️", "⬅️":
+      return true
     default: return false
     }
   }

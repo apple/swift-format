@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -20,6 +20,9 @@ public final class SwiftFormatter {
 
   /// The configuration settings that control the formatter's behavior.
   public let configuration: Configuration
+
+  /// the ranges of text to format
+  public var selection: Selection? = nil
 
   /// An optional callback that will be notified with any findings encountered during formatting.
   public let findingConsumer: ((Finding) -> Void)?
@@ -70,6 +73,7 @@ public final class SwiftFormatter {
     try format(
       source: String(contentsOf: url, encoding: .utf8),
       assumingFileURL: url,
+      selection: nil,
       to: &outputStream,
       parsingDiagnosticHandler: parsingDiagnosticHandler)
   }
@@ -86,6 +90,7 @@ public final class SwiftFormatter {
   ///   - url: A file URL denoting the filename/path that should be assumed for this syntax tree,
   ///     which is associated with any diagnostics emitted during formatting. If this is nil, a
   ///     dummy value will be used.
+  ///   - selection: The ranges to format
   ///   - outputStream: A value conforming to `TextOutputStream` to which the formatted output will
   ///     be written.
   ///   - parsingDiagnosticHandler: An optional callback that will be notified if there are any
@@ -94,6 +99,7 @@ public final class SwiftFormatter {
   public func format<Output: TextOutputStream>(
     source: String,
     assumingFileURL url: URL?,
+    selection: Selection?,
     to outputStream: inout Output,
     parsingDiagnosticHandler: ((Diagnostic, SourceLocation) -> Void)? = nil
   ) throws {
@@ -108,8 +114,8 @@ public final class SwiftFormatter {
       assumingFileURL: url,
       parsingDiagnosticHandler: parsingDiagnosticHandler)
     try format(
-      syntax: sourceFile, operatorTable: .standardOperators, assumingFileURL: url, source: source,
-      to: &outputStream)
+      syntax: sourceFile, source: source, operatorTable: .standardOperators, assumingFileURL: url,
+      selection: selection, to: &outputStream)
   }
 
   /// Formats the given Swift syntax tree and writes the result to an output stream.
@@ -122,32 +128,26 @@ public final class SwiftFormatter {
   ///
   /// - Parameters:
   ///   - syntax: The Swift syntax tree to be converted to source code and formatted.
+  ///   - source: The original Swift source code used to build the syntax tree.
   ///   - operatorTable: The table that defines the operators and their precedence relationships.
   ///     This must be the same operator table that was used to fold the expressions in the `syntax`
   ///     argument.
   ///   - url: A file URL denoting the filename/path that should be assumed for this syntax tree,
   ///     which is associated with any diagnostics emitted during formatting. If this is nil, a
   ///     dummy value will be used.
+  ///   - selection: The ranges to format
   ///   - outputStream: A value conforming to `TextOutputStream` to which the formatted output will
   ///     be written.
   /// - Throws: If an unrecoverable error occurs when formatting the code.
   public func format<Output: TextOutputStream>(
-    syntax: SourceFileSyntax, operatorTable: OperatorTable, assumingFileURL url: URL?,
-    to outputStream: inout Output
-  ) throws {
-    try format(
-      syntax: syntax, operatorTable: operatorTable, assumingFileURL: url, source: nil,
-      to: &outputStream)
-  }
-
-  private func format<Output: TextOutputStream>(
-    syntax: SourceFileSyntax, operatorTable: OperatorTable,
-    assumingFileURL url: URL?, source: String?, to outputStream: inout Output
+    syntax: SourceFileSyntax, source: String, operatorTable: OperatorTable,
+    assumingFileURL url: URL?, selection: Selection?, to outputStream: inout Output
   ) throws {
     let assumedURL = url ?? URL(fileURLWithPath: "source")
     let context = Context(
       configuration: configuration, operatorTable: operatorTable, findingConsumer: findingConsumer,
-      fileURL: assumedURL, sourceFileSyntax: syntax, source: source, ruleNameCache: ruleNameCache)
+      fileURL: assumedURL, selection: selection, sourceFileSyntax: syntax, source: source,
+      ruleNameCache: ruleNameCache)
     let pipeline = FormatPipeline(context: context)
     let transformedSyntax = pipeline.rewrite(Syntax(syntax))
 
@@ -158,6 +158,7 @@ public final class SwiftFormatter {
 
     let printer = PrettyPrinter(
       context: context,
+      source: source,
       node: transformedSyntax,
       printTokenStream: debugOptions.contains(.dumpTokenStream),
       whitespaceOnly: false)

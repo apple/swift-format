@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -35,6 +35,9 @@ class Frontend {
     /// The configuration that should applied for this file.
     let configuration: Configuration
 
+    /// the selected ranges to process
+    let selection: Selection?
+
     /// Returns the string contents of the file.
     ///
     /// The contents of the file are assumed to be UTF-8 encoded. If there is an error decoding the
@@ -45,10 +48,11 @@ class Frontend {
       return String(data: sourceData, encoding: .utf8)
     }()
 
-    init(fileHandle: FileHandle, url: URL, configuration: Configuration) {
+    init(fileHandle: FileHandle, url: URL, configuration: Configuration, selection: Selection? = nil) {
       self.fileHandle = fileHandle
       self.url = url
       self.configuration = configuration
+      self.selection = selection
     }
   }
 
@@ -116,10 +120,17 @@ class Frontend {
       return
     }
 
+    var selection: Selection?
+    if let selectionString = lintFormatOptions.selection {
+      // TODO: do this when parsing args to catch errors?
+      selection = Selection(json: selectionString)
+    }
+
     let fileToProcess = FileToProcess(
       fileHandle: FileHandle.standardInput,
       url: URL(fileURLWithPath: lintFormatOptions.assumeFilename ?? "<stdin>"),
-      configuration: configuration)
+      configuration: configuration,
+      selection: selection)
     processFile(fileToProcess)
   }
 
@@ -162,7 +173,17 @@ class Frontend {
       return nil
     }
 
-    return FileToProcess(fileHandle: sourceFile, url: url, configuration: configuration)
+    var selection: Selection?
+    if let selectionString = lintFormatOptions.selection {
+      // TODO: do this when parsing args to catch errors?
+      selection = Selection(json: selectionString)
+    }
+    return FileToProcess(
+      fileHandle: sourceFile,
+      url: url,
+      configuration: configuration,
+      selection: selection
+    )
   }
 
   /// Returns the configuration that applies to the given `.swift` source file, when an explicit

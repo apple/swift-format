@@ -27,7 +27,8 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     line: UInt = #line
   ) {
     let markedText = MarkedText(textWithMarkers: markedSource)
-    let tree = Parser.parse(source: markedText.textWithoutMarkers)
+    let unmarkedSource = markedText.textWithoutMarkers
+    let tree = Parser.parse(source: unmarkedSource)
     let sourceFileSyntax =
       try! OperatorTable.standardOperators.foldAll(tree).as(SourceFileSyntax.self)!
 
@@ -39,6 +40,7 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     let context = makeContext(
       sourceFileSyntax: sourceFileSyntax,
       configuration: configuration,
+      selection: nil,
       findingConsumer: { emittedFindings.append($0) })
     let linter = type.init(context: context)
     linter.walk(sourceFileSyntax)
@@ -60,6 +62,7 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     pipeline.debugOptions.insert(.disablePrettyPrint)
     try! pipeline.lint(
       syntax: sourceFileSyntax,
+      source: unmarkedSource,
       operatorTable: OperatorTable.standardOperators,
       assumingFileURL: URL(string: file.description)!)
 
@@ -96,7 +99,8 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     line: UInt = #line
   ) {
     let markedInput = MarkedText(textWithMarkers: input)
-    let tree = Parser.parse(source: markedInput.textWithoutMarkers)
+    let originalSource: String = markedInput.textWithoutMarkers
+    let tree = Parser.parse(source: originalSource)
     let sourceFileSyntax =
       try! OperatorTable.standardOperators.foldAll(tree).as(SourceFileSyntax.self)!
 
@@ -108,6 +112,7 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     let context = makeContext(
       sourceFileSyntax: sourceFileSyntax,
       configuration: configuration,
+      selection: nil,
       findingConsumer: { emittedFindings.append($0) })
 
     let formatter = formatType.init(context: context)
@@ -129,6 +134,7 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     // misplacing trivia in a way that the pretty-printer isn't able to handle).
     let prettyPrintedSource = PrettyPrinter(
       context: context,
+      source: originalSource,
       node: Syntax(actual),
       printTokenStream: false,
       whitespaceOnly: false
@@ -148,8 +154,8 @@ class LintOrFormatRuleTestCase: DiagnosingTestCase {
     pipeline.debugOptions.insert(.disablePrettyPrint)
     var pipelineActual = ""
     try! pipeline.format(
-      syntax: sourceFileSyntax, operatorTable: OperatorTable.standardOperators,
-      assumingFileURL: nil, to: &pipelineActual)
+      syntax: sourceFileSyntax, source: originalSource, operatorTable: OperatorTable.standardOperators,
+      assumingFileURL: nil, selection: nil, to: &pipelineActual)
     assertStringsEqualWithDiff(pipelineActual, expected)
     assertFindings(
       expected: findings, markerLocations: markedInput.markers,

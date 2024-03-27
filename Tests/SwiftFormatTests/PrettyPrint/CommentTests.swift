@@ -253,6 +253,62 @@ final class CommentTests: PrettyPrintTestCase {
     assertPrettyPrintEqual(input: input, expected: expected, linelength: 80)
   }
 
+  func testContainerLineCommentsWithSelection() {
+    let input =
+      """
+      // Array comment
+      let a = [➡️4⬅️56, // small comment
+        789]
+
+      // Dictionary comment
+      let b = ["abc": ➡️456, // small comment
+        "def": 789]⬅️
+
+      // Trailing comment
+      let c = [123, 456  // small comment
+      ]
+
+      ➡️/* Array comment */
+      let a = [456, /* small comment */
+        789]
+
+       /* Dictionary comment */
+      let b = ["abc": 456,        /* small comment */
+        "def": 789]⬅️
+      """
+
+    let expected =
+      """
+      // Array comment
+      let a = [
+        456, // small comment
+        789]
+
+      // Dictionary comment
+      let b = ["abc": 456,  // small comment
+        "def": 789,
+      ]
+
+      // Trailing comment
+      let c = [123, 456  // small comment
+      ]
+
+      /* Array comment */
+      let a = [
+        456, /* small comment */
+        789,
+      ]
+
+      /* Dictionary comment */
+      let b = [
+        "abc": 456, /* small comment */
+        "def": 789,
+      ]
+      """
+
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80)
+  }
+
   func testDocumentationBlockComments() {
     let input =
       """

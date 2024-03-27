@@ -1,5 +1,5 @@
 final class IgnoreNodeTests: PrettyPrintTestCase {
-  func atestIgnoreCodeBlockListItems() {
+  func testIgnoreCodeBlockListItems() {
     let input =
       """
             x      = 4       + 5 // This comment stays here.

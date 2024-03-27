@@ -58,7 +58,8 @@ final class WhitespaceLinterPerformanceTests: DiagnosingTestCase {
   ///   - expected: The formatted text.
   private func performWhitespaceLint(input: String, expected: String) {
     let sourceFileSyntax = Parser.parse(source: input)
-    let context = makeContext(sourceFileSyntax: sourceFileSyntax, findingConsumer: { _ in })
+    let context = makeContext(sourceFileSyntax: sourceFileSyntax, selection: nil,
+      findingConsumer: { _ in })
     let linter = WhitespaceLinter(user: input, formatted: expected, context: context)
     linter.lint()
   }

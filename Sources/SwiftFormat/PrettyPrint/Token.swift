@@ -10,6 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import SwiftSyntax
+
 enum GroupBreakStyle {
   /// A consistent break indicates that the break will always be finalized as a newline
   /// if wrapping occurs.
@@ -195,6 +197,13 @@ enum Token {
 
   /// Ends a scope where `contextual` breaks have consistent behavior.
   case contextualBreakingEnd
+
+  /// Turn formatting back on at the given position in the original file
+  /// nil is used to indicate the rest of the file should be output
+  case enableFormatting(AbsolutePosition?)
+
+  /// Turn formatting off at the given position in the original file.
+  case disableFormatting(AbsolutePosition)
 
   // Convenience overloads for the enum types
   static let open = Token.open(.inconsistent, 0)

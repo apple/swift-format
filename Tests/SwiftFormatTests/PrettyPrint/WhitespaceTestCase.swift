@@ -39,6 +39,7 @@ class WhitespaceTestCase: DiagnosingTestCase {
     let context = makeContext(
       sourceFileSyntax: sourceFileSyntax,
       configuration: configuration,
+      selection: nil,
       findingConsumer: { emittedFindings.append($0) })
     let linter = WhitespaceLinter(
       user: markedText.textWithoutMarkers, formatted: expected, context: context)

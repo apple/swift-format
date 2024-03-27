@@ -119,17 +119,18 @@ public final class SwiftLinter {
   /// - Throws: If an unrecoverable error occurs when formatting the code.
   public func lint(
     syntax: SourceFileSyntax,
+    source: String,
     operatorTable: OperatorTable,
     assumingFileURL url: URL
   ) throws {
-    try lint(syntax: syntax, operatorTable: operatorTable, assumingFileURL: url, source: nil)
+    try lint(syntax: syntax, operatorTable: operatorTable, assumingFileURL: url, source: source)
   }
 
   private func lint(
     syntax: SourceFileSyntax,
     operatorTable: OperatorTable,
     assumingFileURL url: URL,
-    source: String?
+    source: String
   ) throws {
     let context = Context(
       configuration: configuration, operatorTable: operatorTable, findingConsumer: findingConsumer,
@@ -145,6 +146,7 @@ public final class SwiftLinter {
     // pretty-printer.
     let printer = PrettyPrinter(
       context: context,
+      source: source,
       node: Syntax(syntax),
       printTokenStream: debugOptions.contains(.dumpTokenStream),
       whitespaceOnly: true)
