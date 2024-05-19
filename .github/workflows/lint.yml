@@ -1,0 +1,22 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    name: Lint Swift ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        swift: ["5.9.2"]
+    steps:
+    - name: Install swiftly
+      run: curl -L https://swift-server.github.io/swiftly/swiftly-install.sh | bash -s -- --disable-confirmation
+    - name: Install Swift
+      run: swiftly install ${{ matrix.swift }}
+    - uses: actions/checkout@v4
+    - name: Lint
+      run: swift package plugin lint-source-code
