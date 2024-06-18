@@ -53,6 +53,9 @@ let package = Package(
         .product(name: "SwiftOperators", package: "swift-syntax"),
         .product(name: "SwiftParser", package: "swift-syntax"),
         .product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
+      ],
+      exclude: [
+        "CMakeLists.txt"
       ]
     ),
     .target(
@@ -104,6 +107,9 @@ let package = Package(
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "SwiftSyntax", package: "swift-syntax"),
         .product(name: "SwiftParser", package: "swift-syntax"),
+      ],
+      exclude: [
+        "CMakeLists.txt"
       ],
       linkerSettings: swiftformatLinkSettings
     ),
