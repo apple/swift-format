@@ -1,0 +1,51 @@
+name: Build and attach on releases – MacOS
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    runs-on: macos-12
+
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      # @see https://github.com/apple/swift-format/commit/705038361379825ef201d96f2709587b08212f5a
+      # NB: sed syntax differs between MacOS and Ubuntu
+      - name: Edit `VersionOptions.swift` to update the version number
+        env:
+          CURRENT_RELEASE: ${{ github.event.release.tag_name }}
+        run: |
+          find . -name 'VersionOptions.swift' -exec sed -i '' 's/print(".*")/print("'$CURRENT_RELEASE'")/g' {} +
+          cat Sources/swift-format/VersionOptions.swift
+
+      # Should output executable to `.build/release/swift-format`
+      - name: Build
+        run: swift build --disable-sandbox -c release
+
+      # Smoke test
+      - name: Test the executable works
+        run: .build/release/swift-format --version
+
+      # Zip the executable so it can be given a descriptive name to distinguish the MacOS and Ubuntu builds
+      - name: Create archive
+        id: create-archive
+        run: |
+          FILENAME=swift-format.${{ github.event.release.name }}.macos.zip
+          cd .build/release/
+          echo "xattr -c swift-format" > disable-codesigning.sh
+          zip $FILENAME swift-format disable-codesigning.sh
+          echo "ARCHIVE_ABSOLUTE_FILEPATH=$(pwd)/$FILENAME" >> $GITHUB_OUTPUT;
+
+      - name: Attach asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.create-archive.outputs.ARCHIVE_ABSOLUTE_FILEPATH }}
