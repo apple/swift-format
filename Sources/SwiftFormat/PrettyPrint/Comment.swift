@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
+import Markdown
 import SwiftSyntax
 
 extension StringProtocol {
@@ -28,6 +29,35 @@ extension StringProtocol {
       idx = scalars.index(before: idx)
     }
     return String(String.UnicodeScalarView(scalars[...idx]))
+  }
+}
+
+fileprivate func markdownFormat(_ lines: [String], _ usableWidth: Int, linePrefix: String = "") -> [String] {
+  let linePrefix = linePrefix + " "
+  let document = Document(parsing: lines.joined(separator: "\n"), options: .disableSmartOpts)
+  let lineLimit = MarkupFormatter.Options.PreferredLineLimit(
+    maxLength: usableWidth,
+    breakWith: .softBreak
+  )
+  let formatterOptions = MarkupFormatter.Options(
+    orderedListNumerals: .incrementing(start: 1),
+    useCodeFence: .always,
+    condenseAutolinks: false,
+    preferredLineLimit: lineLimit,
+    customLinePrefix: linePrefix
+  )
+  let output = document.format(options: formatterOptions)
+  let lines = output.split(separator: "\n")
+  if lines.isEmpty {
+    return [linePrefix]
+  }
+  return lines.map {
+    // unfortunately we have to do a bit of post-processing...
+    if let last = $0.last, let secondLast = $0.dropLast().last, last.isWhitespace && secondLast.isWhitespace {
+      return $0.trimmingTrailingWhitespace() + " \\"
+    } else {
+      return $0.trimmingTrailingWhitespace()
+    }
   }
 }
 
@@ -85,10 +115,24 @@ struct Comment {
     }
   }
 
-  func print(indent: [Indent]) -> String {
+  func print(indent: [Indent], width: Int, textWidth: Int, wrap: Bool) -> String {
     switch self.kind {
+    case .docLine where wrap:
+      let indentation = indent.indentation()
+      let usableWidth = width - indentation.count
+      let wrappedLines = markdownFormat(self.text, min(usableWidth - kind.prefixLength, textWidth))
+      let emptyLinesTrimmed = wrappedLines.map {
+        if $0.allSatisfy({ $0.isWhitespace }) {
+          return kind.prefix
+        } else {
+          return kind.prefix + $0
+        }
+      }
+      return emptyLinesTrimmed.joined(separator: "\n" + indentation)
     case .line, .docLine:
       let separator = "\n" + indent.indentation() + kind.prefix
+      // trailing whitespace is meaningful in Markdown, so we can't remove it
+      // when formatting comments, but we can here
       let trimmedLines = self.text.map { $0.trimmingTrailingWhitespace() }
       return kind.prefix + trimmedLines.joined(separator: separator)
     case .block, .docBlock:

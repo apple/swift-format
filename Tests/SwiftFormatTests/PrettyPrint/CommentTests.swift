@@ -1,4 +1,5 @@
 import _SwiftFormatTestSupport
+import SwiftFormat
 
 final class CommentTests: PrettyPrintTestCase {
   func testDocumentationComments() {
@@ -795,6 +796,9 @@ final class CommentTests: PrettyPrintTestCase {
 
       """
     assertPrettyPrintEqual(input: input, expected: input, linelength: 80)
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: input, linelength: 80, configuration: config)
   }
 
   func testNonmergeableComments() {
@@ -811,6 +815,9 @@ final class CommentTests: PrettyPrintTestCase {
       """
 
     assertPrettyPrintEqual(input: input, expected: input, linelength: 80)
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: input, linelength: 80, configuration: config)
   }
 
   func testMergeableComments() {
@@ -832,4 +839,184 @@ final class CommentTests: PrettyPrintTestCase {
 
     assertPrettyPrintEqual(input: input, expected: input, linelength: 80)
   }
+
+  func testDocLineFormattingWhitespace() {
+    let input = """
+      /// This has trailing whitespace \u{0020}\u{0020}\u{0020}\u{0020}\u{0020}
+      ///       This has leading whitespace.
+      """
+    let expected = #"""
+      /// This has trailing whitespace \
+      /// This has leading whitespace.
+
+      """#
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80, configuration: config)
+  }
+
+  func testDocLineFormattingShortLines() {
+    let input = """
+      /// Test imports with comments.
+      ///
+      /// Comments that are short
+      /// should be merged.
+      """
+
+    let expected = """
+      /// Test imports with comments.
+      ///
+      /// Comments that are short should be merged.
+
+      """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80, configuration: config)
+  }
+
+  func testDocLineFormattingMultipleBlocks() {
+    let input = """
+      /// This is one comment block.
+      /// These lines should merge.
+      ///
+
+      /// This is another block. Since these lines are much longer, they should stay separate. Make
+      /// sure the lines wrap nicely.
+      """
+
+    let expected = """
+      /// This is one comment block. These lines should merge.
+
+      /// This is another block. Since these lines are much
+      /// longer, they should stay separate. Make sure the lines
+      /// wrap nicely.
+
+      """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 60, configuration: config)
+  }
+
+  func testDocLineFormattingForceNewline() {
+    let input = """
+      /// This is one comment block. \u{005c}
+      /// These lines should not merge.\u{0020}\u{0020}
+      /// None of them.\u{0020}\u{0020}\u{0020}\u{0020}
+      /// The end.
+      """
+
+    let expected = #"""
+      /// This is one comment block. \
+      /// These lines should not merge. \
+      /// None of them. \
+      /// The end.
+
+      """#
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80, configuration: config)
+  }
+
+  func testDocLineFormattingBasics() {
+    let input = """
+    /// Here is some **bold text** and __another form__ followed
+    /// by *italic text* and again in _this form_ and then ~~strikethrough~~
+    /// and **nested bold *and italic* text** and ***bold and italic***
+    """
+
+    let expected = """
+    /// Here is some **bold text** and **another form** followed by *italic
+    /// text* and again in *this form* and then ~strikethrough~ and **nested
+    /// bold *and italic* text** and ***bold and italic***
+
+    """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80, configuration: config)
+  }
+
+  func testDocLineFormattingQuote() {
+    let input = """
+    /// > This is some quoted text that should still be wrapped properly.
+    """
+
+    let expected = """
+    /// > This is some
+    /// > quoted text that
+    /// > should still be
+    /// > wrapped properly.
+
+    """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 24, configuration: config)
+  }
+
+  func testDocLineFormattingOrderedList() {
+    let input = """
+      /// 4. This is a list.
+      /// 4. The list should be renumbered.
+      /// 8. But of course, not reordered.
+      ///    1. This is a subitem.
+      /// 1. Final item.
+      """
+
+    let expected = """
+      /// 1. This is a list.
+      /// 2. The list should be renumbered.
+      /// 3. But of course, not reordered.
+      ///    1. This is a subitem.
+      /// 4. Final item.
+
+      """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80, configuration: config)
+  }
+
+  func testDocLineFormattingUnorderedList() {
+    let input = """
+      /// - This is a list.
+      /// - The list is unordered.
+      ///   - This is a subitem.
+      /// - Final item.
+      """
+
+    let expected = """
+      /// - This is a list.
+      /// - The list is unordered.
+      ///   - This is a subitem.
+      /// - Final item.
+
+      """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: expected, linelength: 80, configuration: config)
+  }
+
+  func testDocLineFormattingCodeBlock() {
+    let input = """
+      /// ```
+      ///   for (i=0; i<9; i++) {
+      ///     a[i] = b[i];
+      ///   }
+      /// ```
+
+      /// This is inline `*x = *y;` and should be left alone.
+
+      """
+
+    var config = Configuration.forTesting
+    config.wrapComments = true
+    assertPrettyPrintEqual(input: input, expected: input, linelength: 80, configuration: config)
+  }
+
 }
