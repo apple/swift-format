@@ -20,7 +20,7 @@ struct FormatPlugin {
     process.waitUntilExit()
     
     if process.terminationReason == .exit && process.terminationStatus == 0 {
-      print("Formatted the source code.")
+      Diagnostics.remark("Formatted the source code.")
     }
     else {
       let problem = "\(process.terminationReason):\(process.terminationStatus)"
@@ -35,15 +35,13 @@ extension FormatPlugin: CommandPlugin {
     arguments: [String]
   ) async throws {
     let swiftFormatTool = try context.tool(named: "swift-format")
-    
+
     var argExtractor = ArgumentExtractor(arguments)
-    let targetNames = argExtractor.extractOption(named: "target")
-    let targetsToFormat = targetNames.isEmpty ? context.package.targets : try context.package.targets(named: targetNames)
-    
+
     let configurationFilePath = argExtractor.extractOption(named: "swift-format-configuration").first
-    
-    let sourceCodeTargets = targetsToFormat.compactMap{ $0 as? SourceModuleTarget }
-    
+
+    let sourceCodeTargets = context.package.targets.compactMap{ $0 as? SourceModuleTarget }
+
     try format(
       tool: swiftFormatTool,
       targetDirectories: sourceCodeTargets.map(\.directory.string),
