@@ -1,0 +1,396 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Swift Format Configuration",
+  "description": "Configuration\nhttps://github.com/apple/swift-format/blob/main/Documentation/Configuration.md#swift-format-configuration",
+  "type": "object",
+  "properties": {
+    "version": {
+      "title": "version",
+      "type": "number",
+      "description": "The version of the configuration file. For now, this should always be 1.",
+      "default": 1,
+      "enum": [
+        1
+      ]
+    },
+    "lineLength": {
+      "title": "line length",
+      "type": "number",
+      "description": "The maximum allowed length of a line, in characters.",
+      "default": 100
+    },
+    "indentation": {
+      "title": "indentation",
+      "type": "object",
+      "description": "The kind and amount of whitespace that should be added when indenting one level.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "spaces": {
+              "title": "spaces",
+              "type": "number",
+              "description": "One level of indentation is the given number of spaces.",
+              "default": 2
+            }
+          },
+          "required": [
+            "spaces"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tabs": {
+              "title": "tabs",
+              "type": "number",
+              "description": "One level of indentation is the given number of tabs."
+            }
+          },
+          "required": [
+            "tabs"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "tabWidth": {
+      "title": "tab width",
+      "type": "number",
+      "description": "The number of spaces that should be considered equivalent to one tab character.",
+      "default": 8
+    },
+    "maximumBlankLines": {
+      "title": "maximum blank lines",
+      "type": "number",
+      "description": "The maximum number of consecutive blank lines that are allowed to be present in a source file.",
+      "default": 1
+    },
+    "respectsExistingLineBreaks": {
+      "title": "respects existing line breaks",
+      "type": "boolean",
+      "description": "Indicates whether or not existing line breaks in the source code should be honored.",
+      "default": true
+    },
+    "lineBreakBeforeControlFlowKeywords": {
+      "title": "line break before control flow keywords",
+      "type": "boolean",
+      "description": "Determines the line-breaking behavior for control flow keywords that follow a closing brace.",
+      "default": false
+    },
+    "lineBreakBeforeEachArgument": {
+      "title": "line break before each argument",
+      "type": "boolean",
+      "description": "Determines the line-breaking behavior for generic arguments and function arguments when a declaration is wrapped onto multiple lines.",
+      "default": false
+    },
+    "lineBreakBeforeEachGenericRequirement": {
+      "title": "line break before each generic requirement",
+      "type": "boolean",
+      "description": "Determines the line-breaking behavior for generic requirements when the requirements list is wrapped onto multiple lines.",
+      "default": false
+    },
+    "prioritizeKeepingFunctionOutputTogether": {
+      "title": "prioritize keeping function output together",
+      "type": "boolean",
+      "description": "Determines if function-like declaration outputs should be prioritized to be together with the function signature right (closing) parenthesis.",
+      "default": false
+    },
+    "indentConditionalCompilationBlocks": {
+      "title": "indent conditional compilation blocks",
+      "type": "boolean",
+      "description": "Determines if conditional compilation blocks are indented.",
+      "default": true
+    },
+    "lineBreakAroundMultilineExpressionChainComponents": {
+      "title": "line break around multiline expression chain components",
+      "type": "boolean",
+      "description": "Determines whether line breaks should be forced before and after multiline components of dot-chained expressions.",
+      "default": false
+    },
+    "spacesAroundRangeFormationOperators": {
+      "title": "spaces around range formation operators",
+      "type": "boolean",
+      "description": "Determines whether whitespace should be forced before and after the range formation operators.",
+      "default": false
+    },
+    "multiElementCollectionTrailingCommas": {
+      "title": "multi-element collection trailing commas",
+      "type": "boolean",
+      "description": "Determines whether multi-element collection literals should have trailing commas.",
+      "default": true
+    },
+    "indentSwitchCaseLabels": {
+      "type": "boolean",
+      "description": "Determines if case statements should be indented compared to the containing switch block.",
+      "default": false
+    },
+    "fileScopedDeclarationPrivacy": {
+      "title": "file-scoped declaration privacy",
+      "type": "object",
+      "description": "Determines the formal access level for file-scoped declarations whose effective access level is private to the containing file.",
+      "properties": {
+        "accessLevel": {
+          "title": "access level",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "private"
+              ],
+              "description": "Private file-scoped declarations should be declared 'private'. If a file-scoped declaration is declared 'fileprivate', it will be diagnosed (in lint mode) or changed to 'private' (in format mode).",
+              "default": "private"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "fileprivate"
+              ],
+              "description": "Private file-scoped declarations should be declared 'fileprivate'. If a file-scoped declaration is declared 'private', it will be diagnosed (in lint mode) or changed to 'fileprivate' (in format mode)."
+            }
+          ]
+        }
+      },
+      "required": [
+        "accessLevel"
+      ],
+      "additionalProperties": false
+    },
+    "noAssignmentInExpressions": {
+      "title": "no assignment in expressions",
+      "type": "object",
+      "description": "Contains exceptions for the NoAssignmentInExpressions rule.",
+      "properties": {
+        "allowedFunctions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of function names where assignments are allowed to be embedded in expressions that are passed as parameters to that function.",
+          "default": [
+            "XCTAssertNoThrow"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "rules": {
+      "title": "rules",
+      "type": "object",
+      "description": "Specifies which rules to apply when linting and formatting your project.",
+      "properties": {
+        "AllPublicDeclarationsHaveDocumentation": {
+          "type": "boolean",
+          "description": "All public or open declarations must have a top-level documentation comment.",
+          "default": false
+        },
+        "AlwaysUseLiteralForEmptyCollectionInit": {
+          "type": "boolean",
+          "description": "Never use [<Type>] syntax. In call sites that should be replaced with [], for initializations use explicit type combined with empty array literal let _: [<Type>] = [] Static properties of a type that return that type should not include a reference to their type.",
+          "default": false
+        },
+        "AlwaysUseLowerCamelCase": {
+          "type": "boolean",
+          "description": "All values should be written in lower camel-case (lowerCamelCase). Underscores (except at the beginning of an identifier) are disallowed.",
+          "default": true
+        },
+        "AmbiguousTrailingClosureOverload": {
+          "type": "boolean",
+          "description": "Overloads with only a closure argument should not be disambiguated by parameter labels.",
+          "default": true
+        },
+        "BeginDocumentationCommentWithOneLineSummary": {
+          "type": "boolean",
+          "description": "All documentation comments must begin with a one-line summary of the declaration.",
+          "default": false
+        },
+        "DoNotUseSemicolons": {
+          "type": "boolean",
+          "description": "Semicolons should not be present in Swift code.",
+          "default": true
+        },
+        "DontRepeatTypeInStaticProperties": {
+          "type": "boolean",
+          "description": "Static properties of a type that return that type should not include a reference to their type.",
+          "default": true
+        },
+        "FileScopedDeclarationPrivacy": {
+          "type": "boolean",
+          "description": "Declarations at file scope with effective private access should be consistently declared as either fileprivate or private, determined by configuration.",
+          "default": true
+        },
+        "FullyIndirectEnum": {
+          "type": "boolean",
+          "description": "If all cases of an enum are indirect, the entire enum should be marked indirect.",
+          "default": true
+        },
+        "GroupNumericLiterals": {
+          "type": "boolean",
+          "description": "Numeric literals should be grouped with _s to delimit common separators.",
+          "default": true
+        },
+        "IdentifiersMustBeASCII": {
+          "type": "boolean",
+          "description": "All identifiers must be ASCII.",
+          "default": true
+        },
+        "NeverForceUnwrap": {
+          "type": "boolean",
+          "description": "Force-unwraps are strongly discouraged and must be documented.",
+          "default": false
+        },
+        "NeverUseForceTry": {
+          "type": "boolean",
+          "description": "Force-try (try!) is forbidden.",
+          "default": false
+        },
+        "NeverUseImplicitlyUnwrappedOptionals": {
+          "type": "boolean",
+          "description": "Implicitly unwrapped optionals (e.g. var s: String!) are forbidden.",
+          "default": false
+        },
+        "NoAccessLevelOnExtensionDeclaration": {
+          "type": "boolean",
+          "description": "Specifying an access level for an extension declaration is forbidden.",
+          "default": true
+        },
+        "NoAssignmentInExpressions": {
+          "type": "boolean",
+          "description": "Assignment expressions must be their own statements.",
+          "default": true
+        },
+        "NoBlockComments": {
+          "type": "boolean",
+          "description": "Block comments should be avoided in favor of line comments.",
+          "default": true
+        },
+        "NoCasesWithOnlyFallthrough": {
+          "type": "boolean",
+          "description": "Cases that contain only the fallthrough statement are forbidden.",
+          "default": true
+        },
+        "NoEmptyTrailingClosureParentheses": {
+          "type": "boolean",
+          "description": "Function calls with no arguments and a trailing closure should not have empty parentheses.",
+          "default": true
+        },
+        "NoLabelsInCasePatterns": {
+          "type": "boolean",
+          "description": "Redundant labels are forbidden in case patterns.",
+          "default": true
+        },
+        "NoLeadingUnderscores": {
+          "type": "boolean",
+          "description": "Identifiers in declarations and patterns should not have leading underscores.",
+          "default": false
+        },
+        "NoParensAroundConditions": {
+          "type": "boolean",
+          "description": "Enforces rules around parentheses in conditions or matched expressions.",
+          "default": true
+        },
+        "NoPlaygroundLiterals": {
+          "type": "boolean",
+          "description": "The playground literals (#colorLiteral, #fileLiteral, and #imageLiteral) are forbidden.",
+          "default": false
+        },
+        "NoVoidReturnOnFunctionSignature": {
+          "type": "boolean",
+          "description": "Functions that return () or Void should omit the return signature.",
+          "default": true
+        },
+        "OmitExplicitReturns": {
+          "type": "boolean",
+          "description": "Single-expression functions, closures, subscripts can omit return statement.",
+          "default": true
+        },
+        "OneCasePerLine": {
+          "type": "boolean",
+          "description": "Each enum case with associated values or a raw value should appear in its own case declaration.",
+          "default": true
+        },
+        "OneVariableDeclarationPerLine": {
+          "type": "boolean",
+          "description": "Each variable declaration, with the exception of tuple destructuring, should declare 1 variable.",
+          "default": true
+        },
+        "OnlyOneTrailingClosureArgument": {
+          "type": "boolean",
+          "description": "Function calls should never mix normal closure arguments and trailing closures.",
+          "default": true
+        },
+        "OrderedImports": {
+          "type": "boolean",
+          "description": "Imports must be lexicographically ordered and logically grouped at the top of each source file.",
+          "default": true
+        },
+        "ReplaceForEachWithForLoop": {
+          "type": "boolean",
+          "description": "Replace forEach with for-in loop unless its argument is a function reference.",
+          "default": false
+        },
+        "ReturnVoidInsteadOfEmptyTuple": {
+          "type": "boolean",
+          "description": "Return Void, not (), in signatures.",
+          "default": true
+        },
+        "TypeNamesShouldBeCapitalized": {
+          "type": "boolean",
+          "description": "struct, class, enum and protocol declarations should have a capitalized name.",
+          "default": true
+        },
+        "UseEarlyExits": {
+          "type": "boolean",
+          "description": "Early exits should be used whenever possible.",
+          "default": false
+        },
+        "UseExplicitNilCheckInConditions": {
+          "type": "boolean",
+          "description": "When checking an optional value for nil-ness, prefer writing an explicit nil check rather than binding and immediately discarding the value.",
+          "default": false
+        },
+        "UseLetInEveryBoundCaseVariable": {
+          "type": "boolean",
+          "description": "Every variable bound in a case pattern must have its own let/var.",
+          "default": true
+        },
+        "UseShorthandTypeNames": {
+          "type": "boolean",
+          "description": "Shorthand type forms must be used wherever possible.",
+          "default": true
+        },
+        "UseSingleLinePropertyGetter": {
+          "type": "boolean",
+          "description": "Read-only computed properties must use implicit get blocks.",
+          "default": true
+        },
+        "UseSynthesizedInitializer": {
+          "type": "boolean",
+          "description": "When possible, the synthesized struct initializer should be used.",
+          "default": true
+        },
+        "UseTripleSlashForDocumentationComments": {
+          "type": "boolean",
+          "description": "Documentation comments must use the /// form.",
+          "default": true
+        },
+        "UseWhereClausesInForLoops": {
+          "type": "boolean",
+          "description": "for loops that consist of a single if statement must use where clauses instead.",
+          "default": false
+        },
+        "ValidateDocumentationComments": {
+          "type": "boolean",
+          "description": "Documentation comments must be complete and valid.",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version"
+  ],
+  "additionalProperties": false
+}
