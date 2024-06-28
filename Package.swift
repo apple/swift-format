@@ -34,9 +34,17 @@ let package = Package(
       targets: ["Format Source Code"]
     ),
     .plugin(
+      name: "FormatBuildPlugin",
+      targets: ["Format Build Plugin"]
+    ),
+    .plugin(
       name: "LintPlugin",
       targets: ["Lint Source Code"]
     ),
+    .plugin(
+      name: "LintBuildPlugin",
+      targets: ["Lint Build Plugin"]
+    )
   ],
   dependencies: dependencies,
   targets: [
@@ -76,6 +84,14 @@ let package = Package(
       path: "Plugins/FormatPlugin"
     ),
     .plugin(
+      name: "Format Build Plugin",
+      capability: .buildTool(),
+      dependencies: [
+          .target(name: "swift-format")
+      ],
+      path: "Plugins/FormatBuildPlugin"
+    ),
+    .plugin(
       name: "Lint Source Code",
       capability: .command(
         intent: .custom(
@@ -87,6 +103,14 @@ let package = Package(
         .target(name: "swift-format")
       ],
       path: "Plugins/LintPlugin"
+    ),
+    .plugin(
+        name: "Lint Build Plugin",
+        capability: .buildTool(),
+        dependencies: [
+            .target(name: "swift-format")
+        ],
+        path: "Plugins/LintBuildPlugin"
     ),
     .executableTarget(
       name: "generate-swift-format",
@@ -107,7 +131,6 @@ let package = Package(
       ],
       linkerSettings: swiftformatLinkSettings
     ),
-
     .testTarget(
       name: "SwiftFormatPerformanceTests",
       dependencies: [

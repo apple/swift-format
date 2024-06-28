@@ -3,6 +3,9 @@ import Foundation
 
 @main
 struct FormatPlugin {
+  static private let toolName = "swift-format"
+  static private let configName = ".swift-format"
+    
   func format(tool: PluginContext.Tool, targetDirectories: [String], configurationFilePath: String?) throws {
     let swiftFormatExec = URL(fileURLWithPath: tool.path.string)
     
