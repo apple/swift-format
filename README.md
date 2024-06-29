@@ -170,10 +170,12 @@ subcommands:
     or off respectively, regardless of whether the output is going to a
     terminal.
 
-*   `--configuration <file>`: The path to a JSON file that contains
+*   `--configuration <file|string>`: The path to a JSON file that contains
     [configurable settings](#configuring-the-command-line-tool) for
-    `swift-format`. If omitted, a default configuration is use (which
-    can be seen by running `swift-format dump-configuration`).
+    `swift-format`. If no file is found, `swift-format` tries to load the json
+    data as a string, if valid. If the parameter is omitted, a default
+    configuration is used (which can be seen by running
+    `swift-format dump-configuration`).
 
 *   `--ignore-unparsable-files`: If this option is specified and a source file
     contains syntax errors or can otherwise not be parsed successfully by the
@@ -205,14 +207,18 @@ JSON-formatted file named `.swift-format` in the same directory. If one is
 found, then that file is loaded to determine the tool's configuration. If the
 file is not found, then it looks in the parent directory, and so on.
 
+If there is no project specific configuration file, the
+[config directories](Documentation/Configuration.md#Global-Configuration)
+are checked for a `swift-format/config.json` configuration file.
+
 If no configuration file is found, a default configuration is used. The
 settings in the default configuration can be viewed by running
 `swift-format dump-configuration`, which will dump it to standard
 output.
 
-If the `--configuration <file>` option is passed to `swift-format`, then that
-configuration will be used unconditionally and the file system will not be
-searched.
+If the `--configuration <file|string>` option is passed to `swift-format`,
+then that configuration will be used unconditionally and the file system will
+not be searched.
 
 See [Documentation/Configuration.md](Documentation/Configuration.md) for a
 description of the configuration file format and the settings that are

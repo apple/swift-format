@@ -196,7 +196,9 @@ class Frontend {
   ///   it was provided, or by searching in paths inferred by `swiftFilePath` if one exists, or the
   ///   default configuration otherwise. If an error occurred when reading the configuration, a
   ///   diagnostic is emitted and `nil` is returned. If neither `pathOrString` nor `swiftFilePath`
-  ///   were provided, a default `Configuration()` will be returned.
+  ///   were provided, a configuration is searched at the current working directory or upwards the
+  ///   path. Next the configuration is searched for at the OS default config locations as
+  ///   swift-format/config.json. Finally the default `Configuration()` will be returned.
   private func configuration(
     fromPathOrString pathOrString: String?,
     orInferredFromSwiftFileAt swiftFileURL: URL?
@@ -253,6 +255,57 @@ class Frontend {
         diagnosticsEngine.emitError(
           "Unable to read configuration for \(cwd): \(error.localizedDescription)")
         return nil
+      }
+    }
+
+    // Load global configuration file
+    // First URLs are created, then they are queried. First match is loaded
+    var configLocations: [URL] = []
+
+    if #available(macOS 13.0, iOS 16.0, *) {
+      // From "~/Library/Application Support/" directory
+      configLocations.append(URL.applicationSupportDirectory)
+      // From $XDG_CONFIG_HOME directory
+      if let xdgConfig: String = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"] {
+        configLocations.append(URL(filePath: xdgConfig, directoryHint: .isDirectory))
+      }
+      // From "~/.config/" directory
+      var dotconfig: URL = URL.homeDirectory
+      dotconfig.append(component: ".config", directoryHint: .isDirectory)
+      configLocations.append(dotconfig)
+    } else {
+      // From "~/Library/Application Support/" directory
+      var appSupport: URL = FileManager.default.homeDirectoryForCurrentUser
+      appSupport.appendPathComponent("Library", isDirectory: true)
+      appSupport.appendPathComponent("Application Support", isDirectory: true)
+      configLocations.append(appSupport)
+      // From $XDG_CONFIG_HOME directory
+      if let xdgConfig: String = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"] {
+        configLocations.append(URL(fileURLWithPath: xdgConfig))
+      }
+      // From "~/.config/" directory
+      var dotconfig: URL = FileManager.default.homeDirectoryForCurrentUser
+      dotconfig.appendPathComponent(".config")
+      configLocations.append(dotconfig)
+    }
+
+    for var location: URL in configLocations {
+      if #available(macOS 13.0, iOS 16.0, *) {
+        location.append(components: "swift-format", "config.json")
+      } else {
+        location.appendPathComponent("swift-format", isDirectory: true)
+        location.appendPathComponent("config.json", isDirectory: false)
+      }
+      if FileManager.default.fileExists(atPath: location.path) {
+        do {
+          let configuration = try configurationLoader.configuration(at: location)
+          self.checkForUnrecognizedRules(in: configuration)
+          return configuration
+        } catch {
+          diagnosticsEngine.emitError(
+            "Unable to read configuration for \(location.path): \(error.localizedDescription)")
+          return nil
+        }
       }
     }
 
