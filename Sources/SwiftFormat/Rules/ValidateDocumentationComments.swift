@@ -62,7 +62,7 @@ public final class ValidateDocumentationComments: SyntaxLintRule {
     }
 
     validateThrows(
-      signature.effectSpecifiers?.throwsSpecifier,
+      signature.effectSpecifiers?.throwsClause?.throwsSpecifier,
       name: name,
       throwsDescription: docComment.throws,
       node: node)
